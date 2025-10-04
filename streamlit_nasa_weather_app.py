@@ -39,15 +39,23 @@ def load_and_preprocess(url: str):
         st.error("Unsupported file format. Please use CSV or Excel.")
         st.stop()
 
-    # Preprocessing
-    if "time" in df.columns:
-        df["time"] = pd.to_datetime(df["time"], errors="coerce")
-        df = df.dropna(subset=["time"])
-        df["date"] = df["time"].dt.date
-        df["doy"] = df["time"].dt.dayofyear
-    else:
-        st.error("Dataset must contain a 'time' column.")
-        st.stop()
+    # --- Fix time column ---
+    if "time" not in df.columns:
+        if "date" in df.columns:
+            df.rename(columns={"date": "time"}, inplace=True)
+        elif "Date" in df.columns:
+            df.rename(columns={"Date": "time"}, inplace=True)
+        elif {"year","month","day"}.issubset(df.columns):
+            df["time"] = pd.to_datetime(df[["year","month","day"]])
+        else:
+            st.error(f"Dataset columns are {list(df.columns)} — please ensure there is a date or time column.")
+            st.stop()
+
+    # --- Parse datetime ---
+    df["time"] = pd.to_datetime(df["time"], errors="coerce")
+    df = df.dropna(subset=["time"])
+    df["date"] = df["time"].dt.date
+    df["doy"] = df["time"].dt.dayofyear
 
     return df
 
