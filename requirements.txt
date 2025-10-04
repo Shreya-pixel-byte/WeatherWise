@@ -1,0 +1,12 @@
+streamlit
+xarray
+netCDF4
+s3fs
+fsspec
+pandas
+numpy
+scipy
+plotly
+folium
+streamlit-folium
+requests
