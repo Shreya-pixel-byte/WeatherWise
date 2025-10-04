@@ -209,3 +209,4 @@ elif st.session_state.page == "dashboard":
         st.plotly_chart(fig_comp,use_container_width=True)
 
 
+
