@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import xarray as xr
 import plotly.express as px
 import plotly.graph_objects as go
 import folium
@@ -162,14 +161,26 @@ elif st.session_state.page == "dashboard":
         )
 
         df = df_all.copy()
+
+        # --- Aggregate over space (lat/lon) ---
+        if "lat" in df.columns and "lon" in df.columns and var_key in df.columns:
+            df = df.groupby("time")[var_key].mean().reset_index()
+            df["doy"] = df["time"].dt.dayofyear
+
+        # --- Season filter ---
         if season != "All year":
             months = {"Winter":[12,1,2],"Spring":[3,4,5],"Summer":[6,7,8],"Autumn":[9,10,11]}[season]
             df = df[df["time"].dt.month.isin(months)]
 
+        # --- Subset for selected day ---
         subset = df[df["doy"] == day_of_year]
-        if not subset.empty and var_key in subset.columns:
+
+        if not subset.empty:
             prob = (subset[var_key] > threshold).mean() * 100
             st.metric(f"Probability of {weather_condition}", f"{prob:.1f}%")
+
+            # Debugging: show sample of subset
+            st.write("Data sample for selected day:", subset.head())
 
             # Histogram
             fig = px.histogram(subset, x=var_key, nbins=30, title=f"Distribution on {selected_date}")
@@ -190,6 +201,8 @@ elif st.session_state.page == "dashboard":
                 "text/csv",
                 key=f"download_{var_key}_{idx}"
             )
+        else:
+            st.warning(f"No data available for {selected_date} in {var_key}. Try another date or season.")
 
     if combined_curves:
         st.header("Combined Probability Curves")
