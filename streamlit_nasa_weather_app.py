@@ -8,11 +8,12 @@ import folium
 from streamlit_folium import st_folium
 from folium.plugins import Draw
 import os
+from datetime import datetime
 
 # --------------------------
 # Page Setup
 # --------------------------
-st.set_page_config(page_title="☔ Will it Rain on My Parade?", layout="wide")
+st.set_page_config(page_title="☔ WeatherWise", layout="wide")
 
 # --------------------------
 # Session State for Page Navigation
@@ -38,7 +39,7 @@ setup_earthdata_auth()
 # Splash Page
 # --------------------------
 if st.session_state.page == "splash":
-    st.markdown("<h1 style='text-align: center; font-size: 60px;'>☔ Will it Rain on My Parade? 🌂💧</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; font-size: 60px;'>☔ WeatherWise 🌂💧</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>Check the likelihood of weather affecting your outdoor plans!</h3>", unsafe_allow_html=True)
     
     st.markdown("<div style='text-align:center; margin-top:50px;'>", unsafe_allow_html=True)
@@ -50,22 +51,27 @@ if st.session_state.page == "splash":
 # Instructions / Description Page
 # --------------------------
 elif st.session_state.page == "instructions":
-    st.title("📖 How to Use 'Will it Rain on My Parade?'")
+    st.title("📖 How to Use 'WeatherWise?'")
     st.markdown("""
 Planning an outdoor activity—like a vacation, hike, fishing trip, or parade?  
-This app helps you explore the **likelihood of extreme or uncomfortable weather conditions** at a specific location and day of the year based on **historical NASA Earth observation data**.
+This app helps you explore the **likelihood of extreme or uncomfortable weather conditions** at a specific location and day based on **historical NASA Earth observation data**.
 
 ### Steps to Use the App:
 1. **Select Weather Conditions**: Very hot, very cold, very wet, very windy, or very uncomfortable.
 2. **Choose Variables**: Temperature, precipitation, wind speed, etc.
 3. **Select Location**: Click on the map for a point, or draw a polygon/rectangle for region analysis.
-4. **Choose Season and Day of Year**.
+4. **Choose Season and Date**.
 5. **View Results**: Probability metrics, histograms, probability curves, combined curves.
 6. **Download Data**: Option to download CSVs with your selected query.
 """)
     st.markdown("<div style='text-align:center; margin-top:50px;'>", unsafe_allow_html=True)
-    if st.button("🚀 Go to Dashboard 🚀"):
-        st.session_state.page = "dashboard"
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("⬅️ Go Back"):
+            st.session_state.page = "splash"
+    with col2:
+        if st.button("🚀 Go to Dashboard 🚀"):
+            st.session_state.page = "dashboard"
     st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------
@@ -88,7 +94,10 @@ elif st.session_state.page == "dashboard":
         "Very Uncomfortable": 30.0 # °C equivalent
     }
     season = st.sidebar.selectbox("Season Filter", ["All year","Winter","Spring","Summer","Autumn"])
-    day_of_year = st.sidebar.slider("Day of Year",1,365,200)
+    
+    # --- Calendar Date Picker Instead of Day of Year ---
+    selected_date = st.sidebar.date_input("Select Date", datetime.today())
+    day_of_year = selected_date.timetuple().tm_yday
     
     # --- Dataset Selection ---
     DATASETS = {
@@ -119,6 +128,10 @@ elif st.session_state.page == "dashboard":
     }
     selected_vars = st.sidebar.multiselect("Select variables", list(DATASETS.keys()), default=list(DATASETS.keys()))
     
+    # --- Go Back Button ---
+    if st.button("⬅️ Go Back"):
+        st.session_state.page = "instructions"
+
     # --- Map Selection ---
     st.subheader("📌 Select Location / Draw Region")
     m = folium.Map(location=[20,0], zoom_start=2)
@@ -186,7 +199,7 @@ elif st.session_state.page == "dashboard":
         st.metric(f"Probability of {weather_condition}", f"{prob:.1f}%")
         
         # Histogram
-        fig=px.histogram(subset, x="value", nbins=30, title=f"Distribution on Day {day_of_year}", labels={"value": f"{var_key} ({ds_info['unit']})"})
+        fig=px.histogram(subset, x="value", nbins=30, title=f"Distribution on {selected_date}", labels={"value": f"{var_key} ({ds_info['unit']})"})
         fig.add_vline(x=threshold, line_dash="dash", line_color="red")
         st.plotly_chart(fig,use_container_width=True)
         
@@ -207,3 +220,6 @@ elif st.session_state.page == "dashboard":
             fig_comp.add_trace(go.Scatter(x=series.index,y=series.values,mode="lines",name=label))
         fig_comp.update_layout(title="Comparison of Probabilities",xaxis_title="Day of Year",yaxis_title="Probability (%)")
         st.plotly_chart(fig_comp,use_container_width=True)
+
+    # --- Footer ---
+    st.markdown("<hr><p style='text-align:center; font-size:12px;'>Built by NASA-inspired Event Horizon Engineers 🌌</p>", unsafe_allow_html=True)
