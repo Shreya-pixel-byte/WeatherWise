@@ -38,7 +38,7 @@ setup_earthdata_auth()
 # Splash Page
 # --------------------------
 if st.session_state.page == "splash":
-    st.markdown("<h1 style='text-align: center; font-size: 60px;'>☔ Will it Rain on My Parade? 🌂💧</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; font-size: 60px;'>☔ WeatherWise 🌂💧</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>Check the likelihood of weather affecting your outdoor plans!</h3>", unsafe_allow_html=True)
     
     st.markdown("<div style='text-align:center; margin-top:50px;'>", unsafe_allow_html=True)
@@ -207,4 +207,5 @@ elif st.session_state.page == "dashboard":
             fig_comp.add_trace(go.Scatter(x=series.index,y=series.values,mode="lines",name=label))
         fig_comp.update_layout(title="Comparison of Probabilities",xaxis_title="Day of Year",yaxis_title="Probability (%)")
         st.plotly_chart(fig_comp,use_container_width=True)
+
 
