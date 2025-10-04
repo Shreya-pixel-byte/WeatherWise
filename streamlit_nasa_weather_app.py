@@ -39,7 +39,7 @@ setup_earthdata_auth()
 # Splash Page
 # --------------------------
 if st.session_state.page == "splash":
-    st.markdown("<h1 style='text-align: center; font-size: 60px;'>☔ WeatherWise 🌂💧</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; font-size: 60px;'>WeatherWise</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>Check the likelihood of weather affecting your outdoor plans!</h3>", unsafe_allow_html=True)
     
     st.markdown("<div style='text-align:center; margin-top:50px;'>", unsafe_allow_html=True)
@@ -233,4 +233,5 @@ elif st.session_state.page == "dashboard":
 
     # --- Footer ---
     st.markdown("<hr><p style='text-align:center; font-size:12px;'>Built by NASA-inspired Event Horizon Engineers</p>", unsafe_allow_html=True)
+
 
