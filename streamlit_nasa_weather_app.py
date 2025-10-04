@@ -30,7 +30,7 @@ def load_and_preprocess(url: str):
         try:
             df = pd.read_excel(url, sheet_name=0)  # first sheet
         except ImportError:
-            st.error("⚠️ Missing dependency `openpyxl`. Add it to requirements.txt or convert Excel to CSV.")
+            st.error("⚠️ Missing dependency openpyxl. Add it to requirements.txt or convert Excel to CSV.")
             st.stop()
     else:
         st.error("Unsupported file format. Please use CSV or Excel.")
@@ -38,7 +38,7 @@ def load_and_preprocess(url: str):
 
     # --- Fix time column ---
     if "time" not in df.columns:
-        if "validdate" in df.columns:
+        if "validdate" in df.columns:   # your dataset
             df.rename(columns={"validdate": "time"}, inplace=True)
         elif "date" in df.columns:
             df.rename(columns={"date": "time"}, inplace=True)
@@ -64,34 +64,7 @@ def load_and_preprocess(url: str):
     }
     df.rename(columns=rename_map, inplace=True)
 
-    # --- Add offline city and country lookup ---
-    city_country_map = {
-        (52.520551, 13.461804): ("Berlin", "Germany"),
-        (40.712776, -74.005974): ("New York", "United States"),
-        (35.689487, 139.691711): ("Tokyo", "Japan"),
-        (-33.868820, 151.209290): ("Sydney", "Australia")
-    }
-
-    df["lat_round"] = df["lat"].round(6)
-    df["lon_round"] = df["lon"].round(6)
-
-    df["city"] = df.apply(
-        lambda row: city_country_map.get(
-            (row["lat_round"], row["lon_round"]), ("Unknown", "Unknown")
-        )[0],
-        axis=1
-    )
-
-    df["country"] = df.apply(
-        lambda row: city_country_map.get(
-            (row["lat_round"], row["lon_round"]), ("Unknown", "Unknown")
-        )[1],
-        axis=1
-    )
-
-    df.drop(columns=["lat_round", "lon_round"], inplace=True)
     return df
-
 
 # Load dataset
 df_all = load_and_preprocess(DATA_URL)
@@ -124,7 +97,7 @@ This app helps you explore the **likelihood of extreme or uncomfortable weather 
 ### Steps to Use:
 1. Select Weather Conditions.
 2. Choose Variables (temperature, precipitation, wind speed).
-3. Select Location on map or from dropdown.
+3. Select Location on map.
 4. Choose Season and Date.
 5. View Results (probability metrics, histograms, curves).
 6. Download CSVs.
@@ -163,14 +136,7 @@ elif st.session_state.page == "dashboard":
     selected_date = st.sidebar.date_input("Select Date", datetime.today())
     day_of_year = selected_date.timetuple().tm_yday
 
-    # --- Dynamic city filter ---
-    available_cities = sorted(df_all["city"].dropna().unique())
-    selected_city = st.sidebar.selectbox("Select City", ["All"] + available_cities)
-    if selected_city != "All":
-        df_all = df_all[df_all["city"] == selected_city]
-
-    # --- Auto-detect variables ---
-    available_vars = [c for c in df_all.columns if c not in ["time","date","doy","lat","lon","city","country"]]
+    available_vars = [c for c in df_all.columns if c not in ["time","date","doy","lat","lon"]]
     selected_vars = st.sidebar.multiselect("Select variables", available_vars, default=available_vars[:2])
 
     if st.button("Go Back", key="dashboard_back"):
@@ -178,7 +144,7 @@ elif st.session_state.page == "dashboard":
 
     # Map selection
     st.subheader("Select Location / Draw Region")
-    m = folium.Map(location=[df_all["lat"].mean(), df_all["lon"].mean()], zoom_start=2)
+    m = folium.Map(location=[20,0], zoom_start=2)
     Draw(export=True, filename="region.geojson", draw_options={"polygon":True,"rectangle":True,"marker":True}).add_to(m)
     st_folium(m, width=700, height=450)
 
@@ -187,10 +153,6 @@ elif st.session_state.page == "dashboard":
     combined_curves = {}
 
     for idx, var_key in enumerate(selected_vars):
-        if var_key not in df_all.columns:
-            st.warning(f"Variable '{var_key}' not found in dataset.")
-            continue
-
         st.subheader(var_key)
         threshold = st.sidebar.number_input(
             f"Threshold for '{weather_condition}' ({var_key})",
@@ -217,6 +179,9 @@ elif st.session_state.page == "dashboard":
             prob = (subset[var_key] > threshold).mean() * 100
             st.metric(f"Probability of {weather_condition}", f"{prob:.1f}%")
 
+            # Debugging: show sample of subset
+            st.write("Data sample for selected day:", subset.head())
+
             # Histogram
             fig = px.histogram(subset, x=var_key, nbins=30, title=f"Distribution on {selected_date}")
             fig.add_vline(x=threshold, line_dash="dash", line_color="red")
@@ -241,10 +206,10 @@ elif st.session_state.page == "dashboard":
 
     if combined_curves:
         st.header("Combined Probability Curves")
-        fig_comp = go.Figure()
+        fig_comp=go.Figure()
         for label, series in combined_curves.items():
-            fig_comp.add_trace(go.Scatter(x=series.index, y=series.values, mode="lines", name=label))
-        fig_comp.update_layout(title="Comparison of Probabilities", xaxis_title="Day of Year", yaxis_title="Probability (%)")
-        st.plotly_chart(fig_comp, use_container_width=True)
+            fig_comp.add_trace(go.Scatter(x=series.index,y=series.values,mode="lines",name=label))
+        fig_comp.update_layout(title="Comparison of Probabilities",xaxis_title="Day of Year",yaxis_title="Probability (%)")
+        st.plotly_chart(fig_comp,use_container_width=True)
 
     st.markdown("<hr><p style='text-align:center; font-size:12px;'>Built by NASA-inspired Event Horizon Engineers</p>", unsafe_allow_html=True)
