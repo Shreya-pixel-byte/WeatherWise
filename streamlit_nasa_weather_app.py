@@ -12,7 +12,7 @@ import os
 # --------------------------
 # Page Setup
 # --------------------------
-st.set_page_config(page_title="☔ Will it Rain on My Parade?", layout="wide")
+st.set_page_config(page_title="☔ WeatherWise", layout="wide")
 
 # --------------------------
 # Session State for Page Navigation
@@ -50,7 +50,7 @@ if st.session_state.page == "splash":
 # Instructions / Description Page
 # --------------------------
 elif st.session_state.page == "instructions":
-    st.title("📖 How to Use 'Will it Rain on My Parade?'")
+    st.title("📖 How to Use 'WeatherWise?'")
     st.markdown("""
 Planning an outdoor activity—like a vacation, hike, fishing trip, or parade?  
 This app helps you explore the **likelihood of extreme or uncomfortable weather conditions** at a specific location and day of the year based on **historical NASA Earth observation data**.
@@ -207,3 +207,4 @@ elif st.session_state.page == "dashboard":
             fig_comp.add_trace(go.Scatter(x=series.index,y=series.values,mode="lines",name=label))
         fig_comp.update_layout(title="Comparison of Probabilities",xaxis_title="Day of Year",yaxis_title="Probability (%)")
         st.plotly_chart(fig_comp,use_container_width=True)
+
