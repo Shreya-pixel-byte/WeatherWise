@@ -13,7 +13,7 @@ from datetime import datetime
 # --------------------------
 # Page Setup
 # --------------------------
-st.set_page_config(page_title="☔ WeatherWise", layout="wide")
+st.set_page_config(page_title="WeatherWise", layout="wide")
 
 # --------------------------
 # Session State for Page Navigation
@@ -43,7 +43,7 @@ if st.session_state.page == "splash":
     st.markdown("<h3 style='text-align: center;'>Check the likelihood of weather affecting your outdoor plans!</h3>", unsafe_allow_html=True)
     
     st.markdown("<div style='text-align:center; margin-top:50px;'>", unsafe_allow_html=True)
-    if st.button("🌟 Would you like to check? 🌟", key="splash_button"):
+    if st.button("Would you like to check?", key="splash_button"):
         st.session_state.page = "instructions"
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -51,7 +51,7 @@ if st.session_state.page == "splash":
 # Instructions / Description Page
 # --------------------------
 elif st.session_state.page == "instructions":
-    st.title("📖 How to Use 'WeatherWise?'")
+    st.title("How to Use 'WeatherWise?'")
     st.markdown("""
 Planning an outdoor activity—like a vacation, hike, fishing trip, or parade?  
 This app helps you explore the **likelihood of extreme or uncomfortable weather conditions** at a specific location and day based on **historical NASA Earth observation data**.
@@ -70,7 +70,7 @@ This app helps you explore the **likelihood of extreme or uncomfortable weather 
         if st.button("⬅️ Go Back", key="instructions_back"):
             st.session_state.page = "splash"
     with col2:
-        if st.button("🚀 Go to Dashboard 🚀", key="instructions_forward"):
+        if st.button("Go to Dashboard", key="instructions_forward"):
             st.session_state.page = "dashboard"
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -78,7 +78,7 @@ This app helps you explore the **likelihood of extreme or uncomfortable weather 
 # Dashboard Page
 # --------------------------
 elif st.session_state.page == "dashboard":
-    st.title("🌦️ Personalized Weather Probability Dashboard")
+    st.title("Personalized Weather Probability Dashboard")
     
     # --- Sidebar for user input ---
     st.sidebar.title("Customize Your Query")
@@ -131,11 +131,11 @@ elif st.session_state.page == "dashboard":
     selected_vars = st.sidebar.multiselect("Select variables", list(DATASETS.keys()), default=list(DATASETS.keys()), key="selected_vars")
     
     # --- Go Back Button ---
-    if st.button("⬅️ Go Back", key="dashboard_back"):
+    if st.button("Go Back", key="dashboard_back"):
         st.session_state.page = "instructions"
 
     # --- Map Selection ---
-    st.subheader("📌 Select Location / Draw Region")
+    st.subheader("Select Location / Draw Region")
     m = folium.Map(location=[20,0], zoom_start=2)
     Draw(export=True, filename="region.geojson", draw_options={"polygon":True,"rectangle":True,"circle":False,"polyline":False,"marker":True}).add_to(m)
     map_data = st_folium(m, width=700, height=450)
@@ -177,7 +177,7 @@ elif st.session_state.page == "dashboard":
             return df
 
     # --- Main Dashboard Analysis Loop ---
-    st.header("🌦️ Condition Probabilities")
+    st.header("Condition Probabilities")
     combined_curves = {}
 
     for idx, var_key in enumerate(selected_vars):
@@ -224,7 +224,7 @@ elif st.session_state.page == "dashboard":
 
     # Combined Curves Plot
     if combined_curves:
-        st.header("📊 Combined Probability Curves")
+        st.header("Combined Probability Curves")
         fig_comp=go.Figure()
         for label,series in combined_curves.items():
             fig_comp.add_trace(go.Scatter(x=series.index,y=series.values,mode="lines",name=label))
@@ -232,4 +232,5 @@ elif st.session_state.page == "dashboard":
         st.plotly_chart(fig_comp,use_container_width=True)
 
     # --- Footer ---
-    st.markdown("<hr><p style='text-align:center; font-size:12px;'>Built by NASA-inspired Event Horizon Engineers 🌌</p>", unsafe_allow_html=True)
+    st.markdown("<hr><p style='text-align:center; font-size:12px;'>Built by NASA-inspired Event Horizon Engineers</p>", unsafe_allow_html=True)
+
